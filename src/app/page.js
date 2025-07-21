@@ -1,103 +1,143 @@
-import Image from "next/image";
+"use client"
+import { useState } from 'react';
+import axios from 'axios';
 
-export default function Home() {
+const OTPVerification = () => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState(1); // 1: phone input, 2: OTP input
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSendOTP = async () => {
+    if (!phoneNumber || phoneNumber.length !== 10) {
+      setError('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post('/api/send-otp', { phoneNumber });
+      console.log(response)
+      if (response.data.success) {
+        setStep(2);
+      } else {
+        setError('Failed to send OTP. Please try again.');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error sending OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otp || otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post('/api/verify-otp', { phoneNumber, otp });
+      if (response.data.success) {
+        alert('OTP verified successfully!');
+        // You can redirect or perform other actions here
+      } else {
+        setError(response.data.error || 'OTP verification failed');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error verifying OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="otp-container">
+      <h2>Phone Verification</h2>
+      
+      {step === 1 ? (
+        <div className="phone-step">
+          <p>Enter your phone number to receive an OTP</p>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="Enter 10-digit phone number"
+            maxLength="10"
+          />
+          <button onClick={handleSendOTP} disabled={loading}>
+            {loading ? 'Sending...' : 'Send OTP'}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      ) : (
+        <div className="otp-step">
+          <p>Enter the OTP sent to +91{phoneNumber}</p>
+          <input
+            type="text"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="Enter 6-digit OTP"
+            maxLength="6"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <button onClick={handleVerifyOTP} disabled={loading}>
+            {loading ? 'Verifying...' : 'Verify OTP'}
+          </button>
+          <p className="resend" onClick={handleSendOTP}>
+            Didn't receive OTP? Resend
+          </p>
+        </div>
+      )}
+
+      {error && <p className="error">{error}</p>}
+
+      <style jsx>{`
+        .otp-container {
+          max-width: 400px;
+          margin: 0 auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          text-align: center;
+        }
+        input {
+          width: 100%;
+          padding: 10px;
+          margin: 10px 0;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 16px;
+        }
+        button {
+          background-color: #0070f3;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+        }
+        button:disabled {
+          background-color: #ccc;
+          cursor: not-allowed;
+        }
+        .error {
+          color: red;
+          margin-top: 10px;
+        }
+        .resend {
+          color: #0070f3;
+          cursor: pointer;
+          margin-top: 10px;
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default OTPVerification;
