@@ -1,7 +1,6 @@
 import otpStore from "@/lib/otpstore";
 import { NextResponse } from "next/server";
 
-
 export async function POST(req) {
   try {
     const { phoneNumber, otp } = await req.json();
@@ -16,6 +15,9 @@ export async function POST(req) {
 
     const fullPhoneNumber = `+91${phoneNumber}`;
     const storedOTP = otpStore.get(fullPhoneNumber);
+
+    console.log('Stored OTP:', storedOTP); // Debug log
+    console.log('Received OTP:', otp); // Debug log
 
     // OTP verification
     if (!storedOTP) {
@@ -32,49 +34,14 @@ export async function POST(req) {
       );
     }
 
-    // await dbConnect();
+    // Clear OTP after successful verification
+    otpStore.delete(fullPhoneNumber);
 
-    // // Find or create user
-    // let user = await User.findOne({ phone: fullPhoneNumber });
-    // const isNewUser = !user;
-
-    // if (!user) {
-    //   user = new User({
-    //     phone: fullPhoneNumber,
-    //     isVerified: false,
-    //     phoneIsVerified: true,
-    //     lastLoginAt: new Date()
-    //   });
-    //   await user.save();
-    // } else {
-    //   user.lastLoginAt = new Date();
-    //   user.phoneIsVerified = true;
-    //   if (!user.isVerified) user.isVerified = false;
-    //   await user.save();
-    // }
-
-    // otpStore.delete(fullPhoneNumber);
-
-    // // Create session token
-    // const token = createToken(user._id);
-    // const response = NextResponse.json({
-    //   success: true,
-    //   message: "OTP verified successfully",
-    //   userId: user._id,
-    //   isNewUser,
-    //   user: {
-    //     phone: user.phone,
-    //     isVerified: user.isVerified,
-    //     phoneIsVerified: user.phoneIsVerified
-    //   }
-    // });
-
-    // // Set HTTP-only cookie
-    // setTokenCookie(response, token);
-    console.log("otp verified")
-    const response = "OTP VErifued Successfully"
-    return NextResponse.json({success:true})
-    return response;
+    console.log("OTP verified successfully");
+    return NextResponse.json({ 
+      success: true,
+      message: "OTP verified successfully" 
+    });
 
   } catch (error) {
     console.error("Error verifying OTP:", error);
