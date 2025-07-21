@@ -73,6 +73,7 @@ export async function POST(req) {
     // setTokenCookie(response, token);
     console.log("otp verified")
     const response = "OTP VErifued Successfully"
+    return NextResponse.json({success:true})
     return response;
 
   } catch (error) {
