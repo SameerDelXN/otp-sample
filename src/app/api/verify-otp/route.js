@@ -1,8 +1,6 @@
 import otpStore from "@/lib/otpstore";
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
-import User from "@/models/User";
-import { createToken, setTokenCookie } from "@/lib/auth";
+
 
 export async function POST(req) {
   try {
